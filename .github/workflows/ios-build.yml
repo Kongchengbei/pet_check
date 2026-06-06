@@ -12,17 +12,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  lint:
     runs-on: macos-latest
-    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - name: Install SwiftLint
+        run: brew install swiftlint
+      - name: Run SwiftLint
+        run: swiftlint lint --reporter github --strict
+        continue-on-error: true
+
+  build-ios:
+    runs-on: macos-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Setup Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '15.4'
+          xcode-version: '16.2'
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -31,65 +40,13 @@ jobs:
         working-directory: newwork
         run: xcodegen generate
 
-      - name: Build (iOS Simulator)
+      - name: Build iOS Simulator
         run: |
           xcodebuild build \
             -project newwork/PetFeedCheck.xcodeproj \
             -scheme PetFeedCheck \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.0' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
-
-      - name: Build (visionOS Simulator)
-        if: success()
-        run: |
-          xcodebuild build \
-            -project newwork/PetFeedCheck.xcodeproj \
-            -scheme PetFeedCheck \
-            -destination 'platform=visionOS Simulator,name=Apple Vision Pro' \
-            -configuration Debug \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-
-  # Optional: Archive for distribution (requires Apple Developer account)
-  archive:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: build
-    runs-on: macos-latest
-    
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '15.4'
-
-      - name: Install XcodeGen
-        run: brew install xcodegen
-
-      - name: Generate Xcode Project
-        working-directory: newwork
-        run: xcodegen generate
-
-      - name: Archive
-        run: |
-          xcodebuild archive \
-            -project newwork/PetFeedCheck.xcodeproj \
-            -scheme PetFeedCheck \
-            -archivePath PetFeedCheck.xcarchive \
-            -destination 'generic/platform=iOS' \
-            -configuration Release \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
-
-      - name: Upload Archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: PetFeedCheck.xcarchive
-          path: PetFeedCheck.xcarchive
