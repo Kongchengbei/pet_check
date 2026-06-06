@@ -1,0 +1,55 @@
+name: Build iOS App
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'newwork/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.2'
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        working-directory: newwork
+        run: xcodegen generate
+
+      - name: Archive iOS App
+        run: |
+          xcodebuild archive \
+            -project newwork/PetFeedCheck.xcodeproj \
+            -scheme PetFeedCheck \
+            -archivePath PetFeedCheck.xcarchive \
+            -destination 'generic/platform=iOS' \
+            -configuration Release \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export .app from archive
+        run: |
+          APP_PATH=$(find PetFeedCheck.xcarchive -name "*.app" -type d | head -1)
+          cp -R "$APP_PATH" PetFeedCheck.app
+
+      - name: Upload .app
+        uses: actions/upload-artifact@v4
+        with:
+          name: PetFeedCheck-app
+          path: PetFeedCheck.app
+
+      - name: Upload .xcarchive
+        uses: actions/upload-artifact@v4
+        with:
+          name: PetFeedCheck-xcarchive
+          path: PetFeedCheck.xcarchive
