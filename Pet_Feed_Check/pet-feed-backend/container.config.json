@@ -1,0 +1,20 @@
+{
+  "containerPort": 80,
+  "dockerfilePath": "Dockerfile",
+  "buildDir": ".",
+  "minNum": 1,
+  "maxNum": 5,
+  "cpu": 2,
+  "mem": 4,
+  "policyType": "cpu",
+  "policyThreshold": 70,
+  "envParams": {
+    "OCR_TOKEN": "",
+    "LLM_TOKEN": ""
+  },
+  "customLogs": {
+    "enabled": true,
+    "logPath": "/app/logs"
+  },
+  "initialDelaySeconds": 30
+}

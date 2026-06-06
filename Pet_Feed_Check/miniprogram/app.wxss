@@ -1,0 +1,31 @@
+/* ========== Design Tokens ========== */
+:root {
+  /* 品牌色 */
+  --color-primary: #1976D2;
+  --color-primary-light: #E3F2FD;
+  --color-accent: #00BCD4;
+
+  /* 功能色 */
+  --color-success: #4CAF50;
+  --color-warning: #FF9800;
+  --color-error: #EF5350;
+
+  /* 中性色 */
+  --color-bg: #F7F9FC;
+  --color-card: #FFFFFF;
+  --color-text-main: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-border: #E5E7EB;
+
+  /* 圆角 & 阴影 */
+  --radius-sm: 4rpx;
+  --radius-md: 8rpx;
+  --radius-lg: 12rpx;
+
+  --shadow-sm: 0 2rpx 8rpx rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 6rpx 18rpx rgba(15, 23, 42, 0.08);
+
+  /* 动效 */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s ease;
+}

@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  pet-feed-backend:
+    build: .
+    container_name: pet-feed-backend
+    restart: always
+    ports:
+      - "80:80"
+    env_file:
+      - .env
+    volumes:
+      - ./temp_images:/app/temp_images
+      - ./tasks:/app/tasks
+      - ./Utils:/app/Utils
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"

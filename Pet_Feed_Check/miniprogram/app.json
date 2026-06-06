@@ -1,0 +1,18 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/test_index"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#E8F4FD",
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#1976D2",
+    "navigationBarTitleText": "宠标通",
+    "navigationBarTextStyle": "white"
+  },
+  "style": "v2",
+  "componentFramework": "glass-easel",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -1,0 +1,349 @@
+<view class="page-container ac-theme">
+  <view class="ac-background">
+    <view class="ac-leaf-pattern"></view>
+    <view class="ac-hill ac-hill-1"></view>
+    <view class="ac-hill ac-hill-2"></view>
+  </view>
+
+  <view class="custom-navbar ac-navbar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="navbar-content">
+      <image class="navbar-logo" src="/images/logo.png" mode="aspectFill"></image>
+      <view class="ac-title-pill">
+        <text class="navbar-title">宠标速鉴</text>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view
+    class="container"
+    style="height: calc(100vh - {{navBarHeight}}px); margin-top: {{navBarHeight}}px;"
+    scroll-y
+    show-scrollbar="{{false}}"
+  >
+    <view class="ac-scroll-inner">
+      <view class="ac-top-illustration-zone">
+        <image class="ac-top-illustration-image" src="/images/background-tight.png" mode="aspectFit"></image>
+        <view class="ac-top-illustration-wash"></view>
+        <view class="ac-top-illustration-fade"></view>
+      </view>
+
+      <view class="ac-panel open ac-first-panel">
+        <view class="ac-panel-head">
+          <view class="ac-panel-left">
+            <view class="ac-panel-icon-shell ac-panel-icon-shell-photo">
+              <image class="ac-panel-head-image" src="/images/camera.jpg" mode="aspectFill"></image>
+            </view>
+            <view class="ac-panel-title-box">
+              <text class="ac-panel-title">上传宠粮图片</text>
+              <text class="ac-panel-subtitle">支持多图批量分析</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="ac-panel-body">
+          <block wx:if="{{imageList.length === 0}}">
+            <view class="upload-area" bindtap="chooseImage">
+              <view class="upload-placeholder">
+                <view class="upload-icon-wrapper">
+                  <view class="upload-icon-inner">
+                    <image class="upload-cover-icon" src="/images/camera.jpg" mode="aspectFit"></image>
+                  </view>
+                  <view class="upload-icon-ring"></view>
+                </view>
+                <text class="upload-text">点击上传图片</text>
+                <text class="upload-hint">最多 9 张，支持相册和拍照</text>
+              </view>
+            </view>
+          </block>
+
+          <block wx:elif="{{imageList.length === 1}}">
+            <view class="upload-container single-mode">
+              <view class="image-wrapper">
+                <image class="preview-image" src="{{imageList[0].path}}" mode="aspectFit"></image>
+                <view class="image-actions">
+                  <view class="action-btn change-btn" catchtap="chooseImage" data-index="0">更换</view>
+                  <view class="action-btn remove-btn" catchtap="removeImage" data-index="0">删除</view>
+                  <view class="action-btn add-btn" catchtap="chooseImage">继续添加</view>
+                </view>
+              </view>
+            </view>
+          </block>
+
+          <block wx:else>
+            <view class="image-grid {{imageList.length + (imageList.length < maxImages ? 1 : 0) <= 4 ? 'grid-2' : 'grid-3'}}">
+              <block wx:for="{{imageList}}" wx:key="id">
+                <view
+                  class="grid-item {{item.moving ? 'moving' : ''}} {{dragOverIndex === index ? 'drag-over' : ''}}"
+                  data-index="{{index}}"
+                  bindtouchstart="onDragStart"
+                  bindtouchmove="onDragMove"
+                  bindtouchend="onDragEnd"
+                >
+                  <image class="grid-image" src="{{item.path}}" mode="aspectFill"></image>
+                  <view class="delete-icon" catchtap="removeImage" data-index="{{index}}">
+                    <text>×</text>
+                  </view>
+                </view>
+              </block>
+
+              <view class="grid-item add-item" wx:if="{{imageList.length < maxImages}}" bindtap="chooseImage">
+                <text class="add-icon">+</text>
+              </view>
+            </view>
+
+            <view class="drag-ghost" wx:if="{{isDragging}}" style="left: {{dragX}}px; top: {{dragY}}px;">
+              <image class="drag-ghost-image" src="{{imageList[movingIndex].path}}" mode="aspectFill"></image>
+            </view>
+          </block>
+        </view>
+      </view>
+
+      <view class="ac-panel open">
+        <view class="ac-panel-head">
+          <view class="ac-panel-left">
+            <view class="ac-panel-icon-shell ac-panel-icon-model">
+              <image class="ac-panel-icon-model-image" src="/images/computer.jpg" mode="aspectFill"></image>
+            </view>
+            <view class="ac-panel-title-box">
+              <text class="ac-panel-title">选择审核模型</text>
+              <text class="ac-panel-subtitle">按速度和效果自由切换</text>
+            </view>
+          </view>
+          <view class="ac-panel-right" bindtap="openPicker">
+            <text class="ac-panel-arrow">{{showPicker ? '^' : 'v'}}</text>
+          </view>
+        </view>
+
+        <view class="ac-panel-body">
+          <view class="current-model" bindtap="openPicker">
+            <view class="model-info">
+              <view class="model-logo-wrapper">
+                <image class="model-logo" src="/images/logo{{optionIndex + 1}}.png" mode="aspectFill"></image>
+              </view>
+              <view class="model-detail">
+                <text class="model-name">{{optionList[optionIndex].displayName ? optionList[optionIndex].displayName : optionList[optionIndex].name}}</text>
+                <text class="model-hint">{{optionList[optionIndex].desc}}</text>
+              </view>
+            </view>
+            <view class="model-arrow">
+              <text class="arrow-icon">></text>
+            </view>
+          </view>
+
+          <view class="model-dropdown" wx:if="{{showPicker}}">
+            <view
+              class="model-dropdown-item {{optionIndex === index ? 'selected' : ''}}"
+              wx:for="{{optionList}}"
+              wx:key="index"
+              bindtap="selectOption"
+              data-index="{{index}}"
+            >
+              <view class="model-info">
+                <view class="model-logo-wrapper">
+                  <image class="model-logo" src="/images/logo{{index + 1}}.png" mode="aspectFill"></image>
+                </view>
+                <view class="model-detail">
+                  <text class="model-name">{{item.displayName ? item.displayName : item.name}}</text>
+                  <text class="model-hint">{{item.desc}}</text>
+                </view>
+              </view>
+              <view class="option-check {{optionIndex === index ? 'selected' : ''}}">
+                <text wx:if="{{optionIndex === index}}">✓</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="ac-panel ac-quick-card open">
+        <view class="ac-panel-head ac-static-head">
+          <view class="ac-panel-left">
+            <view class="ac-panel-icon-shell ac-panel-icon-shell-quick">
+              <image class="ac-panel-head-image ac-panel-head-image-quick" src="/images/1.jpg" mode="aspectFill"></image>
+            </view>
+            <view class="ac-panel-title-box">
+              <text class="ac-panel-title">快速审核</text>
+              <text class="ac-panel-subtitle">一键切换常用模型</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="ac-panel-body">
+          <view class="quick-select">
+            <view class="quick-header">
+              <text class="quick-title">常用模型</text>
+            </view>
+            <view class="quick-options">
+              <view
+                class="quick-option {{optionIndex === item.index ? 'active' : ''}}"
+                wx:for="{{quickList}}"
+                wx:key="index"
+                bindtap="quickSelect"
+                data-index="{{item.index}}"
+              >
+                <view class="quick-logo-wrapper">
+                  <image class="quick-logo" src="/images/logo{{item.index + 1}}.png" mode="aspectFill"></image>
+                </view>
+                <text class="quick-name">{{item.name}}</text>
+                <view class="quick-check" wx:if="{{optionIndex === item.index}}">
+                  <text>✓</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="ac-submit-wrap">
+        <button class="submit-btn" bindtap="onButtonATap" disabled="{{isLoading}}">
+          <view class="btn-content">
+            <text class="btn-icon">{{isLoading ? '⏳' : '🔍'}}</text>
+            <text class="btn-text">{{isLoading ? '审核中...' : '立即审核'}}</text>
+          </view>
+          <view class="btn-shine" wx:if="{{!isLoading}}"></view>
+        </button>
+      </view>
+
+      <view class="ac-panel ac-result-panel open" wx:if="{{resultContent && resultContent.length > 0}}">
+        <view class="ac-panel-head">
+          <view class="ac-panel-left">
+            <view class="ac-panel-icon-shell ac-panel-icon-shell-result">
+              <image class="ac-panel-head-image ac-panel-head-image-result" src="/images/2.jpg" mode="aspectFill"></image>
+            </view>
+            <view class="ac-panel-title-box">
+              <text class="ac-panel-title">审核结果</text>
+              <text class="ac-panel-subtitle">{{usedModel}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="ac-panel-body">
+          <view class="result-section">
+            <view class="result-content">
+              <block wx:for="{{resultContent}}" wx:key="index">
+                <view wx:if="{{item.type === 'h1'}}" class="md-h1">{{item.content}}</view>
+                <view wx:elif="{{item.type === 'h2'}}" class="md-h2">{{item.content}}</view>
+                <view wx:elif="{{item.type === 'h3'}}" class="md-h3">{{item.content}}</view>
+                <view wx:elif="{{item.type === 'h4'}}" class="md-h4">{{item.content}}</view>
+                <view wx:elif="{{item.type === 'hr'}}" class="md-hr"></view>
+
+                <view wx:elif="{{item.type === 'list-item'}}" class="md-list-item">
+                  <text class="md-bullet">•</text>
+                  <text class="md-list-text">{{item.content}}</text>
+                </view>
+
+                <view wx:elif="{{item.type === 'ordered-item'}}" class="md-ordered-item">
+                  <text class="md-order">{{item.order}}.</text>
+                  <text class="md-list-text">{{item.content}}</text>
+                </view>
+
+                <view wx:elif="{{item.type === 'blockquote'}}" class="md-blockquote">
+                  <text>{{item.content}}</text>
+                </view>
+
+                <view wx:elif="{{item.type === 'code-block'}}" class="md-code-block">
+                  <text class="md-code-lang" wx:if="{{item.language}}">{{item.language}}</text>
+                  <text class="md-code-text" selectable="true">{{item.content}}</text>
+                </view>
+
+                <view wx:elif="{{item.type === 'success'}}" class="md-alert md-success">
+                  <text class="md-alert-icon">✅</text>
+                  <text class="md-alert-text">{{item.content}}</text>
+                </view>
+
+                <view wx:elif="{{item.type === 'error'}}" class="md-alert md-error">
+                  <text class="md-alert-icon">❌</text>
+                  <text class="md-alert-text">{{item.content}}</text>
+                </view>
+
+                <view wx:elif="{{item.type === 'warning'}}" class="md-alert md-warning">
+                  <text class="md-alert-icon">⚠️</text>
+                  <text class="md-alert-text">{{item.content}}</text>
+                </view>
+
+                <view wx:elif="{{item.type === 'info'}}" class="md-alert md-info">
+                  <text class="md-alert-icon">💡</text>
+                  <text class="md-alert-text">{{item.content}}</text>
+                </view>
+
+                <view wx:elif="{{item.type === 'bold-paragraph'}}" class="md-bold-paragraph">
+                  <text>{{item.content}}</text>
+                </view>
+
+                <view wx:else class="md-paragraph">
+                  <text>{{item.content}}</text>
+                </view>
+              </block>
+            </view>
+
+            <view class="result-actions">
+              <button class="action-btn copy-btn" bindtap="copyResult">
+                <text class="action-icon">📋</text>
+                <text>复制结果</text>
+              </button>
+              <button class="action-btn share-btn" bindtap="shareResult">
+                <text class="action-icon">📤</text>
+                <text>分享结果</text>
+              </button>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="footer">
+        <text class="footer-text">结果仅供参考，请结合实际喂养场景判断</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="ac-toast-wrap" wx:if="{{toastVisible}}">
+    <view class="ac-toast ac-toast-{{toastType}}">
+      <view class="ac-toast-icon">
+        <text>{{toastSymbol}}</text>
+      </view>
+      <text class="ac-toast-text">{{toastText}}</text>
+    </view>
+  </view>
+
+  <view class="ac-loading-mask" wx:if="{{loadingPopupVisible}}">
+    <view class="ac-loading-popup">
+      <view class="ac-loading-blob"></view>
+      <text class="ac-loading-title">审核进行中</text>
+      <text class="ac-loading-text">{{loadingText}}</text>
+      <view class="ac-loading-dots">
+        <view class="ac-dot d1"></view>
+        <view class="ac-dot d2"></view>
+        <view class="ac-dot d3"></view>
+      </view>
+    </view>
+  </view>
+
+  <view class="ac-delete-mask" wx:if="{{deleteModalVisible}}" bindtap="closeDeleteModal"></view>
+  <view class="ac-delete-modal" wx:if="{{deleteModalVisible}}">
+    <view class="ac-delete-ear left"></view>
+    <view class="ac-delete-ear right"></view>
+    <view class="ac-delete-body">
+      <text class="ac-delete-title">删除图片</text>
+      <text class="ac-delete-desc">确定要删除这张图片吗？删除后将无法恢复。</text>
+      <view class="ac-delete-actions">
+        <view class="ac-delete-btn cancel" bindtap="closeDeleteModal">取消</view>
+        <view class="ac-delete-btn danger" bindtap="confirmDeleteModal">删除</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="ac-error-mask" wx:if="{{errorModalVisible}}" bindtap="closeErrorModal"></view>
+  <view class="ac-error-modal" wx:if="{{errorModalVisible}}">
+    <view class="ac-error-spark one"></view>
+    <view class="ac-error-spark two"></view>
+    <view class="ac-error-body">
+      <view class="ac-error-badge">!</view>
+      <text class="ac-error-title">{{errorTitle}}</text>
+      <text class="ac-error-desc">{{errorMessage}}</text>
+      <view class="ac-error-actions">
+        <view class="ac-error-btn cancel" wx:if="{{errorShowCancel}}" bindtap="closeErrorModal">{{errorCancelText}}</view>
+        <view class="ac-error-btn confirm" bindtap="confirmErrorModal">{{errorConfirmText}}</view>
+      </view>
+    </view>
+  </view>
+</view>
