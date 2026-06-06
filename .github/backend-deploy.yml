@@ -1,0 +1,41 @@
+name: Deploy Backend to Alibaba Cloud ECS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'pet-feed-backend/**'
+      - 'Pet_Feed_Check (2)/pet-feed-backend/**'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Copy backend files to ECS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USERNAME }}
+          key: ${{ secrets.ECS_SSH_KEY }}
+          source: "pet-feed-backend/*"
+          target: "/opt/pet-feed-backend/"
+          strip_components: 0
+
+      - name: Deploy with Docker Compose
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ECS_HOST }}
+          username: ${{ secrets.ECS_USERNAME }}
+          key: ${{ secrets.ECS_SSH_KEY }}
+          script: |
+            cd /opt/pet-feed-backend
+            docker compose down || true
+            docker compose up -d --build
+            docker compose ps
+            sleep 5
+            curl -f http://localhost:80/api/health || echo "Health check failed — check logs"
