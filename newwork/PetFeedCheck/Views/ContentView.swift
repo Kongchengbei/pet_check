@@ -1,6 +1,7 @@
 import SwiftUI
 import PhotosUI
 
+@MainActor
 struct ContentView: View {
     @StateObject private var vm = AuditViewModel()
     @State private var selectedPickerItems: [PhotosPickerItem] = []
